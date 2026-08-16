@@ -1,0 +1,10 @@
+# dsh-plugin-master bundle patch: registers the plugin master host service
+# and the browser-side settings tab. The first row disables Harness's
+# read-only plugin inventory tab so our richer view is the only one
+# under Settings -> Plugins; the second row mounts the master itself.
+- id: ui-settings-plugin-inventory
+  disabled: true
+
+- insert:
+    - id: plugin-master
+      name: dsh-plugin-master

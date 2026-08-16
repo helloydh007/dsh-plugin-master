@@ -1,0 +1,66 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+.pnpm-debug.log*
+
+# Build outputs
+lib/
+dist/
+out/
+build/
+*.tsbuildinfo
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Env & secrets — never commit credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+.credentials*
+.npmrc.bak*
+id_rsa*
+id_ed25519*
+*.pub
+
+# OS / editor
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.swp
+*~
+.idea/
+.vscode/
+*.code-workspace
+
+# AI assistant / agent tooling — keep out of the repo
+.opencode/
+opencode.json
+.opencode.json
+.claude/
+.claude.json
+.sonnet/
+.codex/
+.cursor/
+.aider*
+.roo/
+.windsurf/
+.continue/
+.copilot/
+.anthropic/
+.prompts/
+
+# DSH / harness local state
+.dsh/
+.dsh-vision-toolkit/
+.dsh-*
