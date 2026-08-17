@@ -65,6 +65,28 @@ rm ~/.dsh/profiles/web/node_modules/dsh-plugin-master
 
 然后重启 `dsh web`。移除禁用行后,官方插件列表标签页会自动恢复。
 
+## 测试开发模式
+
+仓库自带一个可切换崩溃的演示插件 `examples/dev-mode-demo` —— 一个空操作插件,只有当环境变量 `DEV_MODE_DEMO_CRASH=1` 设置时 `apply` 才会抛错。用它来观察隔离效果:
+
+```sh
+# 1. 把演示插件链接进 profile 并挂载
+ln -s "$PWD/examples/dev-mode-demo" ~/.dsh/profiles/web/node_modules/dsh-dev-mode-demo
+# 在 ~/.dsh/profiles/web/cordis.patch.yml 里追加:
+#   - insert:
+#       - id: dev-mode-demo
+#         name: dsh-dev-mode-demo
+
+# 2. 崩溃模式:开发模式开启(默认)时,界面照常打开,
+#    演示条目显示 "开发模式隔离" 标记和失败原因
+DEV_MODE_DEMO_CRASH=1 dsh web
+
+# 3. 修复:不设环境变量,演示插件正常加载,下次启动隔离标记消失
+dsh web
+```
+
+如果关闭开发模式(或没有安装插件管理器),第 2 步会以 `DEV_MODE_DEMO_CRASH: intentional demo crash` 崩溃 —— 这正是该功能要阻止的失败。
+
 ## 使用
 
 打开 **设置 → 插件 → 插件管理**:

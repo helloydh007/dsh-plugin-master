@@ -65,6 +65,29 @@ rm ~/.dsh/profiles/web/node_modules/dsh-plugin-master
 
 Then restart `dsh web`. The official plugin list tab is restored automatically once the disabling row is removed.
 
+## Testing dev mode
+
+The repo ships a toggleable crash demo at `examples/dev-mode-demo` — a no-op plugin whose `apply` throws only when the environment variable `DEV_MODE_DEMO_CRASH=1` is set. Use it to see the quarantine in action:
+
+```sh
+# 1. link the demo into the profile and mount it
+ln -s "$PWD/examples/dev-mode-demo" ~/.dsh/profiles/web/node_modules/dsh-dev-mode-demo
+# add to ~/.dsh/profiles/web/cordis.patch.yml:
+#   - insert:
+#       - id: dev-mode-demo
+#         name: dsh-dev-mode-demo
+
+# 2. crash mode: with dev mode on (default), the UI still opens and the
+#    demo entry shows "Quarantined (dev mode)" with the failure reason
+DEV_MODE_DEMO_CRASH=1 dsh web
+
+# 3. fix it: without the env var the demo applies cleanly and the
+#    quarantine badge disappears on the next boot
+dsh web
+```
+
+Without dev mode (or without the plugin master), step 2 fails loud with `DEV_MODE_DEMO_CRASH: intentional demo crash` — that is the failure the feature prevents.
+
 ## Usage
 
 Open **Settings → Plugins → Plugin Manager**:
