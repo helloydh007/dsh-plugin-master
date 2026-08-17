@@ -111,7 +111,7 @@ export const zh = {
 
   // Development mode
   devMode: '开发模式',
-  devModeHint: '开启后,启动失败的开发插件会被自动隔离(仅运行时),不会阻止进入 Harness 主界面;系统插件不受影响。',
+  devModeHint: '开发插件启动失败会导致 Harness 无法启动(受架构限制,无法在启动时自动拦截)。崩溃后运行 `node bin/quarantine.mjs disable <entryId>` 隔离该插件,重启即可进入;修好后用 `enable` 恢复。',
   devModeOn: '已开启',
   devModeOff: '已关闭',
   quarantinedTag: '开发模式隔离',
@@ -211,7 +211,7 @@ export const en = {
 
   // Development mode
   devMode: 'Development mode',
-  devModeHint: 'When on, user plugins that fail to start are quarantined (runtime only) so the Harness UI still opens. System plugins are never quarantined.',
+  devModeHint: 'A user plugin that crashes at boot prevents Harness from starting (a harness architecture limit — it cannot be intercepted mid-boot). After the crash run `node bin/quarantine.mjs disable <entryId>` to quarantine it, restart, and the UI opens; use `enable` after fixing the plugin.',
   devModeOn: 'On',
   devModeOff: 'Off',
   quarantinedTag: 'Quarantined (dev mode)',

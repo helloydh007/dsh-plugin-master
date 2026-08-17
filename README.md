@@ -15,7 +15,7 @@ This plugin replaces Harness's read-only `ui-settings-plugin-inventory` tab with
 - Enable / disable one loader entry or the whole package. The desired state is persisted in the profile's `cordis.patch.yml` and takes effect at runtime when the loader allows; otherwise the UI tells you a restart is required — via a modal, not a barely-visible status line.
 - Uninstall user packages through the same `dsh plugin --profile <name> remove <package>` command the harness launcher uses, with a confirmation dialog and a verified post-condition.
 - Dependency-aware disable guard: disabling a package whose client services another enabled package still injects is refused with a clear explanation (e.g. disabling `dsh-better-sidebar` while `dsh-plugin-better-sidebar-plugin-office` depends on it).
-- **Development mode (on by default)**: when a user plugin you are developing fails to start, it is quarantined at boot so the Harness UI still opens instead of the whole profile failing loud. The failure reason is shown in the manager; system plugins are never quarantined. Toggle it from the settings tab header.
+- **Development mode (on by default)**: ships a quarantine CLI (`bin/quarantine.mjs`) that flips an owner-marked `disabled` row in `cordis.patch.yml`. When a plugin you are developing crashes the profile at boot, quarantine it from the terminal and restart — the UI then opens with the plugin skipped. Fix the plugin and `enable` it again. Toggle the mode from the settings tab header.
 - Distinguish the install kind (npm registry, local link, local path, git repo, tarball, workspace).
 - Protected ids (the manager itself, Loader plumbing, runtime, webserver, api gateway, settings, client-runtime, locale, modules) cannot be disabled from the page; extend the set through the host config (`protectedEntries`).
 - Bilingual UI (English + Simplified Chinese).
@@ -77,16 +77,24 @@ ln -s "$PWD/examples/dev-mode-demo" ~/.dsh/profiles/web/node_modules/dsh-dev-mod
 #       - id: dev-mode-demo
 #         name: dsh-dev-mode-demo
 
-# 2. crash mode: with dev mode on (default), the UI still opens and the
-#    demo entry shows "Quarantined (dev mode)" with the failure reason
+# 2. crash mode — the harness refuses to start (this is a hard loader
+#    limit: an apply failure is collected before any plugin could react)
 DEV_MODE_DEMO_CRASH=1 dsh web
 
-# 3. fix it: without the env var the demo applies cleanly and the
-#    quarantine badge disappears on the next boot
+# 3. quarantine the demo from the terminal, then restart — the UI opens
+#    with the demo skipped
+node bin/quarantine.mjs disable dev-mode-demo
+dsh web
+
+# 4. fix it, then re-enable and restart — the demo loads again
+node bin/quarantine.mjs enable dev-mode-demo
 dsh web
 ```
 
-Without dev mode (or without the plugin master), step 2 fails loud with `DEV_MODE_DEMO_CRASH: intentional demo crash` — that is the failure the feature prevents.
+Why not automatic: the loader's `Promise.allSettled` collects a failing
+entry's rejection and deletes the entry before any other plugin in the
+tree can observe it, and waiting inside `apply` deadlocks the boot. The
+quarantine CLI is the reliable, architecture-honest path.
 
 ## Usage
 
@@ -139,7 +147,7 @@ The host service accepts a small config block via the `plugin-master` row in you
 - Uninstall goes through `dsh plugin --profile <name> remove`, which runs pnpm and reconciles the bundle stack — never a direct directory deletion.
 - Disabling a package that other enabled packages depend on (client services) is refused with a modal explaining the dependency chain.
 - Protected ids prevent the page from disabling itself, the Cordis Loader plumbing, the API gateway, the Web server, or the harness settings shell.
-- **Dev-mode quarantine is runtime-only.** A quarantined plugin is not written to `cordis.patch.yml`; the next boot retries it. Quarantine applies only to user plugins — a failing system package still fails loud, because that is a real deployment problem.
+- **Quarantine is persisted, not automatic.** `bin/quarantine.mjs` writes an owner-marked `disabled` row that the loader honors before the plugin is ever created, so the next boot skips it. System packages and protected entries are never targeted by the tool.
 - The host has no in-memory cache; every read returns a fresh snapshot from `loader.entries()` and the live `node_modules` walk.
 
 ## Known limitations

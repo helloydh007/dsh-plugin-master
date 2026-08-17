@@ -26,7 +26,6 @@ import { dirname, join } from 'node:path'
 
 import { setEntryEnabled, OWNER_MARKER, readPatchDocument, atomicWrite } from './enable-disable.ts'
 import { isMap, isSeq, type YAMLMap } from 'yaml'
-import { quarantineFailedEntries, type QuarantineRecord } from './dev-mode.ts'
 import {
   resolveProfile,
   readProfileManifest,
@@ -86,9 +85,7 @@ export class PluginMasterGateway extends TypertRemoteService {
   private readonly uninstallTimeoutMs: number
   private mutationTail: Promise<void> = Promise.resolve()
   private readonly selfEntryIds: Set<string> = new Set()
-  /** Runtime-only quarantine records: entryId → failure reason. */
-  private readonly quarantined = new Map<string, QuarantineRecord>()
-  /** Whether dev-mode quarantine is active (config `devMode`, default true). */
+  /** Whether dev-mode quarantine tooling is active (config `devMode`, default true). */
   devMode: boolean
 
   constructor(ctx: Context, config: PluginMasterConfig = {}) {
@@ -141,50 +138,6 @@ export class PluginMasterGateway extends TypertRemoteService {
     })
   }
 
-  /**
-   * Run the dev-mode quarantine pass: scan the loader tree and disable
-   * (runtime-only) every failed user plugin so the harness boot audit
-   * skips it. Retains the failure reasons for the UI. Called from the
-   * host entry's `apply` after the gateway is registered.
-   */
-  async runQuarantine(ctx: Context): Promise<QuarantineRecord[]> {
-    if (!this.devMode) return []
-    const records = await quarantineFailedEntries(ctx, {
-      protectedIds: this.protectedIds,
-      selfEntryIds: this.selfEntryIds,
-      systemPackages: new Set(this.harnessBundles()),
-    })
-    for (const record of records) this.quarantined.set(record.entryId, record)
-    return records
-  }
-
-  /**
-   * Wait until every loader entry other than the master itself has
-   * settled (active, failed, or disabled). The loader activates sibling
-   * entries in parallel and only afterwards throws on any failure, so the
-   * master's `apply` must outlast the rest of the tree to quarantine late
-   * failures. Fails safe after `timeoutMs`.
-   */
-  async waitForTreeSettled(ctx: Context, timeoutMs = 30_000): Promise<void> {
-    const deadline = Date.now() + timeoutMs
-    const loader = ctx.loader as unknown as { entries(): Iterable<LoaderEntryLike> }
-    while (Date.now() < deadline) {
-      let busy = false
-      for (const entry of loader.entries()) {
-        if (entry.options.group === true) continue
-        if (this.selfEntryIds.has(entry.id)) continue
-        if (entry.disabled === true) continue
-        const state = entry.fiber?.state
-        // 0 = pending, 1 = loading — still settling.
-        if (state === 0 || state === 1) {
-          busy = true
-          break
-        }
-      }
-      if (!busy) return
-      await new Promise((resolve) => setTimeout(resolve, 50))
-    }
-  }
 
   /**
    * Find the loader entries belonging to the master plugin and add their
@@ -420,13 +373,7 @@ export class PluginMasterGateway extends TypertRemoteService {
     }
 
     for (const pkg of scanned) {
-      const loaderEntriesForPkg = (entriesByPackage.get(pkg.manifest.name) ?? []).map((entry) => {
-        const record = this.quarantined.get(entry.entryId)
-        if (record !== undefined) {
-          return { ...entry, error: record.error, quarantined: true }
-        }
-        return entry
-      })
+      const loaderEntriesForPkg = entriesByPackage.get(pkg.manifest.name) ?? []
       const verdict = classifyPackage({
         scanned: pkg,
         harnessBundles,

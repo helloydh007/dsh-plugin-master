@@ -18,24 +18,13 @@ export interface PluginMasterConfig {
   protectedEntries?: string[]
   settleTimeoutMs?: number
   uninstallTimeoutMs?: number
-  /** Development mode (default true): quarantine failing user plugins at boot. */
+  /** Development mode (default true): enables the quarantine tooling in the UI. */
   devMode?: boolean
 }
 
 export async function apply(ctx: Context, config: PluginMasterConfig = {}): Promise<void> {
   const gateway = new PluginMasterGateway(ctx, config)
   ctx.pluginMaster = gateway
-  if (gateway.devMode) {
-    // The loader activates sibling entries in parallel and only throws
-    // after the whole tree settles, so the master's apply can outlast
-    // them: quarantine what already failed, wait for the rest to settle
-    // (late failures included), then quarantine again. Entries quarantined
-    // this way have their failed fiber cleared by `entry.update`, so the
-    // boot audit no longer sees them and the UI starts anyway.
-    await gateway.runQuarantine(ctx)
-    await gateway.waitForTreeSettled(ctx)
-    await gateway.runQuarantine(ctx)
-  }
 }
 
 export { PluginMasterGateway }

@@ -15,7 +15,7 @@
 - 启用/禁用:可单独操作一个 Loader 条目,也可整包切换。目标状态持久化到 profile 的 `cordis.patch.yml`,运行期允许时立即生效;需要重启时会用**弹窗**明确提示,而不是一行没人注意的小字。
 - 卸载用户插件:走 `dsh plugin --profile <name> remove <package>`,带二次确认对话框,卸载后校验包是否真的从 `node_modules` 移除。
 - 依赖感知的禁用保护:禁用某个被其他已启用插件(客户端服务)依赖的包时会被拒绝,并弹出清晰说明(例如禁用 `dsh-better-sidebar` 时,`dsh-plugin-better-sidebar-plugin-office` 还依赖它)。
-- **开发模式(默认开启)**:你正在开发的插件启动失败时,会在启动时被自动隔离(仅运行时),Harness 界面照常打开,而不是整个 profile 启动失败。失败原因会显示在管理器中;系统插件永不隔离。可在设置标签页顶部开关。
+- **开发模式(默认开启)**:自带隔离 CLI(`bin/quarantine.mjs`),可直接在 `cordis.patch.yml` 写入带标记的 `disabled` 行。你正在开发的插件导致 profile 启动失败时,在终端隔离它并重启 —— 界面即可打开且插件被跳过;修好后用 `enable` 恢复。可在设置标签页顶部开关。
 - 安装方式标签:区分 npm registry、本地链接、本地路径、Git 仓库、tarball、workspace。
 - 受保护 ID(插件管理器自身、Loader 基建、runtime、webserver、api gateway、settings、client-runtime、locale、modules)无法在页面里被禁用;可通过宿主配置(`protectedEntries`)扩展。
 - 双语界面(简体中文 + 英文)。
@@ -77,15 +77,20 @@ ln -s "$PWD/examples/dev-mode-demo" ~/.dsh/profiles/web/node_modules/dsh-dev-mod
 #       - id: dev-mode-demo
 #         name: dsh-dev-mode-demo
 
-# 2. 崩溃模式:开发模式开启(默认)时,界面照常打开,
-#    演示条目显示 "开发模式隔离" 标记和失败原因
+# 2. 崩溃模式 —— Harness 拒绝启动(这是 loader 的硬限制:
+#    apply 失败在任何插件能反应之前就被收集)
 DEV_MODE_DEMO_CRASH=1 dsh web
 
-# 3. 修复:不设环境变量,演示插件正常加载,下次启动隔离标记消失
+# 3. 在终端隔离演示插件,然后重启 —— 界面打开,演示插件被跳过
+node bin/quarantine.mjs disable dev-mode-demo
+dsh web
+
+# 4. 修好后重新启用并重启 —— 演示插件恢复加载
+node bin/quarantine.mjs enable dev-mode-demo
 dsh web
 ```
 
-如果关闭开发模式(或没有安装插件管理器),第 2 步会以 `DEV_MODE_DEMO_CRASH: intentional demo crash` 崩溃 —— 这正是该功能要阻止的失败。
+为什么不能全自动:loader 的 `Promise.allSettled` 会收集失败条目的 rejection,并在树内其他插件能观察到之前删除该条目;在 `apply` 内等待则会死锁启动。隔离 CLI 是可靠且尊重架构的做法。
 
 ## 使用
 
@@ -138,7 +143,7 @@ host 服务通过 profile 的 `cordis.patch.yml` 中 `plugin-master` 行接受�
 - 卸载走 `dsh plugin --profile <name> remove`,由启动器调用 pnpm 并自动 reconcile bundles,绝不直接删除目录。
 - 禁用被其他已启用插件依赖(客户端服务)的包会被拒绝,并用弹窗说明依赖链。
 - 受保护 ID 防止页面把自己、Loader 基建、API 网关、Web 服务器、设置 shell 关掉。
-- **开发模式隔离只作用于运行时。** 被隔离的插件不会写入 `cordis.patch.yml`,下次启动会重新尝试。隔离只针对用户插件 —— 系统插件失败仍然 fail-loud,因为那是真实的部署问题。
+- **隔离是持久化的,不是自动的。** `bin/quarantine.mjs` 写入带标记的 `disabled` 行,loader 在插件被创建之前就会读取它,因此下次启动会跳过。工具不会针对系统包和受保护条目。
 - host 不做内存缓存;每次读都从 `loader.entries()` 与现场 `node_modules` 实时计算快照。
 
 ## 已知限制
