@@ -66,7 +66,7 @@ export async function readPatchDocument(filename: string): Promise<Document> {
 }
 
 /** Atomic write — write to a temp file then rename. */
-async function atomicWrite(filename: string, content: string): Promise<void> {
+export async function atomicWrite(filename: string, content: string): Promise<void> {
   await mkdir(dirname(filename), { recursive: true })
   const temp = join(dirname(filename), `.${basename(filename)}.${process.pid}.${randomUUID()}.tmp`)
   const payload = content.endsWith('\n') ? content : `${content}\n`

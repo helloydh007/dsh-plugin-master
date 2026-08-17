@@ -39,6 +39,8 @@ interface PluginMasterTabInjectFace {
   setEntryEnabled: (entryId: string, enabled: boolean) => Promise<MutationReceipt>
   setPackageEnabled: (packageName: string, enabled: boolean) => Promise<MutationReceipt>
   uninstall: (packageName: string) => Promise<MutationReceipt>
+  getDevMode: () => Promise<boolean>
+  setDevMode: (enabled: boolean) => Promise<MutationReceipt>
 }
 
 interface RemoteEnvelope<T> {
@@ -91,6 +93,8 @@ export async function apply(ctx: Context): Promise<() => Promise<void>> {
       setPackageEnabled: async (packageName: string, enabled: boolean) =>
         unwrap(await scope.remote.pluginMaster.setPackageEnabled(packageName, enabled)),
       uninstall: async (packageName: string) => unwrap(await scope.remote.pluginMaster.uninstall(packageName)),
+      getDevMode: async () => unwrap(await scope.remote.pluginMaster.getDevMode()),
+      setDevMode: async (enabled: boolean) => unwrap(await scope.remote.pluginMaster.setDevMode(enabled)),
     }
 
     const injected: () => PluginMasterTabInjectFace = () => face

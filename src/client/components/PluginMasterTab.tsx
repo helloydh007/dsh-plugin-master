@@ -35,6 +35,8 @@ export interface PluginMasterTabProps {
   setEntryEnabled: (entryId: string, enabled: boolean) => Promise<MutationReceipt>
   setPackageEnabled: (packageName: string, enabled: boolean) => Promise<MutationReceipt>
   uninstall: (packageName: string) => Promise<MutationReceipt>
+  getDevMode: () => Promise<boolean>
+  setDevMode: (enabled: boolean) => Promise<MutationReceipt>
   t: PluginMasterTabT
 }
 
@@ -47,6 +49,7 @@ export function PluginMasterTab(props: PluginMasterTabProps) {
   const [pendingUninstall, setPendingUninstall] = useState<string | null>(null)
   const [lastReceipt, setLastReceipt] = useState<MutationReceipt | null>(null)
   const [receiptDialogOpen, setReceiptDialogOpen] = useState(false)
+  const [devMode, setDevMode] = useState<boolean | null>(null)
 
   /** 统一的 receipt 落地逻辑:更新状态,并在有失败/待重启项时弹出提示框。 */
   const applyReceipt = useCallback((receipt: MutationReceipt) => {
@@ -57,6 +60,34 @@ export function PluginMasterTab(props: PluginMasterTabProps) {
     )
     if (hasProblems) setReceiptDialogOpen(true)
   }, [])
+
+  // 读取开发模式开关状态(与首次列表加载并行)。
+  useEffect(() => {
+    let current = true
+    void props.getDevMode().then((value) => {
+      if (current) setDevMode(value)
+    }, () => {
+      if (current) setDevMode(false)
+    })
+    return () => { current = false }
+  }, [props])
+
+  const toggleDevMode = useCallback(async () => {
+    if (devMode === null) return
+    const next = !devMode
+    setDevMode(next)
+    try {
+      const receipt = await props.setDevMode(next)
+      applyReceipt(receipt)
+    } catch (error) {
+      setDevMode(!next)
+      applyReceipt({
+        succeeded: false,
+        items: [{ entryId: 'dsh-plugin-master', status: 'failed', message: errorMessage(error) }],
+        snapshot: snapshot ?? null as unknown as PackageSnapshot,
+      })
+    }
+  }, [devMode, props, applyReceipt, snapshot])
 
   const reload = useCallback(async () => {
     setStatus('loading')
@@ -189,6 +220,19 @@ export function PluginMasterTab(props: PluginMasterTabProps) {
       <header className="pm-header">
         <h2 className="pm-headerTitle">{t('headerTitle')}</h2>
         <p className="pm-headerIntro">{t('headerIntro')}</p>
+        <label className="pm-devMode">
+          <input
+            type="checkbox"
+            checked={devMode === true}
+            disabled={devMode === null}
+            onChange={() => void toggleDevMode()}
+          />
+          <span>
+            <strong>{t('devMode')}</strong>
+            <em>{t(devMode === true ? 'devModeOn' : 'devModeOff')}</em>
+            <small>{t('devModeHint')}</small>
+          </span>
+        </label>
       </header>
 
       <div className="pm-toolbar">

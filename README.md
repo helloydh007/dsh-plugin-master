@@ -15,6 +15,7 @@ This plugin replaces Harness's read-only `ui-settings-plugin-inventory` tab with
 - Enable / disable one loader entry or the whole package. The desired state is persisted in the profile's `cordis.patch.yml` and takes effect at runtime when the loader allows; otherwise the UI tells you a restart is required — via a modal, not a barely-visible status line.
 - Uninstall user packages through the same `dsh plugin --profile <name> remove <package>` command the harness launcher uses, with a confirmation dialog and a verified post-condition.
 - Dependency-aware disable guard: disabling a package whose client services another enabled package still injects is refused with a clear explanation (e.g. disabling `dsh-better-sidebar` while `dsh-plugin-better-sidebar-plugin-office` depends on it).
+- **Development mode (on by default)**: when a user plugin you are developing fails to start, it is quarantined at boot so the Harness UI still opens instead of the whole profile failing loud. The failure reason is shown in the manager; system plugins are never quarantined. Toggle it from the settings tab header.
 - Distinguish the install kind (npm registry, local link, local path, git repo, tarball, workspace).
 - Protected ids (the manager itself, Loader plumbing, runtime, webserver, api gateway, settings, client-runtime, locale, modules) cannot be disabled from the page; extend the set through the host config (`protectedEntries`).
 - Bilingual UI (English + Simplified Chinese).
@@ -115,6 +116,7 @@ The host service accepts a small config block via the `plugin-master` row in you
 - Uninstall goes through `dsh plugin --profile <name> remove`, which runs pnpm and reconciles the bundle stack — never a direct directory deletion.
 - Disabling a package that other enabled packages depend on (client services) is refused with a modal explaining the dependency chain.
 - Protected ids prevent the page from disabling itself, the Cordis Loader plumbing, the API gateway, the Web server, or the harness settings shell.
+- **Dev-mode quarantine is runtime-only.** A quarantined plugin is not written to `cordis.patch.yml`; the next boot retries it. Quarantine applies only to user plugins — a failing system package still fails loud, because that is a real deployment problem.
 - The host has no in-memory cache; every read returns a fresh snapshot from `loader.entries()` and the live `node_modules` walk.
 
 ## Known limitations

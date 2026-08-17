@@ -74,6 +74,7 @@ export function projectLoaderEntries(entries: Iterable<LoaderEntryLike>, protect
         ? 'This entry is required by profile reload or the Web management surface.'
         : null,
       error,
+      quarantined: false,
     })
   }
   return out

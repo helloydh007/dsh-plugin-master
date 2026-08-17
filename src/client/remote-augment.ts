@@ -21,6 +21,8 @@ declare module '@deepseek-ai/dsh-typert-protocol' {
     'pluginMaster/setEntryEnabled': (entryId: string, enabled: boolean) => Promise<RemoteResult<MutationReceipt>>
     'pluginMaster/setPackageEnabled': (packageName: string, enabled: boolean) => Promise<RemoteResult<MutationReceipt>>
     'pluginMaster/uninstall': (packageName: string) => Promise<RemoteResult<MutationReceipt>>
+    'pluginMaster/getDevMode': () => Promise<RemoteResult<boolean>>
+    'pluginMaster/setDevMode': (enabled: boolean) => Promise<RemoteResult<MutationReceipt>>
   }
 
   interface TypertRemoteNamespaceMap {
@@ -30,6 +32,8 @@ declare module '@deepseek-ai/dsh-typert-protocol' {
       setEntryEnabled: (entryId: string, enabled: boolean) => Promise<RemoteResult<MutationReceipt>>
       setPackageEnabled: (packageName: string, enabled: boolean) => Promise<RemoteResult<MutationReceipt>>
       uninstall: (packageName: string) => Promise<RemoteResult<MutationReceipt>>
+      getDevMode: () => Promise<RemoteResult<boolean>>
+      setDevMode: (enabled: boolean) => Promise<RemoteResult<MutationReceipt>>
     }
   }
 }

@@ -27,6 +27,9 @@ export function EntryRow({ entry, t, onSetEnabled }: EntryRowProps): ReactNode {
           <span className={`pm-tag ${entry.enabled ? 'pm-tagEnabled' : 'pm-tagDisabled'}`}>
             {entry.enabled ? t('enabledTag') : t('disabledTag')}
           </span>
+          {entry.quarantined ? (
+            <span className="pm-tag pm-tagQuarantined">{t('quarantinedTag')}</span>
+          ) : null}
           {entry.protected ? (
             <span className="pm-tag" title={entry.protectionReason ?? t('protectedReason')}>{t('protectedReason')}</span>
           ) : (

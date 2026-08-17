@@ -109,6 +109,13 @@ export const zh = {
   uninstallBlockedSystem: '此插件随 Harness 安装,无法卸载。',
   uninstallBlockedSelf: '插件管理器自身不能卸载。',
 
+  // Development mode
+  devMode: '开发模式',
+  devModeHint: '开启后,启动失败的开发插件会被自动隔离(仅运行时),不会阻止进入 Harness 主界面;系统插件不受影响。',
+  devModeOn: '已开启',
+  devModeOff: '已关闭',
+  quarantinedTag: '开发模式隔离',
+
   // Receipt dialog
   operationFailed: '操作未完成',
   close: '关闭',
@@ -201,6 +208,13 @@ export const en = {
   uninstallBlocked: 'This plugin cannot be uninstalled.',
   uninstallBlockedSystem: 'This plugin ships with Harness and cannot be uninstalled.',
   uninstallBlockedSelf: 'The plugin manager cannot uninstall itself.',
+
+  // Development mode
+  devMode: 'Development mode',
+  devModeHint: 'When on, user plugins that fail to start are quarantined (runtime only) so the Harness UI still opens. System plugins are never quarantined.',
+  devModeOn: 'On',
+  devModeOff: 'Off',
+  quarantinedTag: 'Quarantined (dev mode)',
 
   // Receipt dialog
   operationFailed: 'Operation not completed',

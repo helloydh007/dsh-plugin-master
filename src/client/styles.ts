@@ -33,6 +33,51 @@ export const pluginMasterCss = `
   color: var(--dsw-alias-label-tertiary, #57606a);
 }
 
+.pm-devMode {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin-top: 2px;
+  padding: 8px 10px;
+  border: 1px solid var(--dsw-alias-border-l2, #d0d7de);
+  border-radius: 8px;
+  background: var(--dsw-alias-bg-layer-2, #f6f8fa);
+  cursor: pointer;
+}
+
+.pm-devMode input {
+  margin-top: 3px;
+  accent-color: var(--dsw-alias-state-business-primary, #0969da);
+}
+
+.pm-devMode span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pm-devMode strong {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.pm-devMode em {
+  font-style: normal;
+  font-size: 11px;
+  color: var(--dsw-alias-state-business-primary, #0969da);
+}
+
+.pm-devMode small {
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--dsw-alias-label-tertiary, #57606a);
+}
+
+.pm-tagQuarantined {
+  background: color-mix(in srgb, #8250df 14%, transparent);
+  color: #8250df;
+}
+
 .pm-toolbar {
   display: flex;
   align-items: center;

@@ -41,6 +41,8 @@ export interface LoaderEntryView {
   protected: boolean
   protectionReason: string | null
   error: string | null
+  /** True when dev-mode quarantined this entry at boot (runtime-only). */
+  quarantined: boolean
 }
 
 /** Search hit descriptor returned alongside a matched package. */

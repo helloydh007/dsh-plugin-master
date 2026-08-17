@@ -48,6 +48,7 @@ const loaderEntry = z.object({
   protected: z.boolean(),
   protectionReason: z.string().nullable(),
   error: z.string().nullable(),
+  quarantined: z.boolean(),
 }).readonly()
 
 const packageView = z.object({
@@ -138,6 +139,8 @@ const descriptors = [
   descriptor('setEntryEnabled', [parameter('entryId', z.string()), parameter('enabled', z.boolean())], mutationReceipt, 'MutationReceipt'),
   descriptor('setPackageEnabled', [parameter('packageName', z.string()), parameter('enabled', z.boolean())], mutationReceipt, 'MutationReceipt'),
   descriptor('uninstall', [parameter('packageName', z.string())], mutationReceipt, 'MutationReceipt'),
+  descriptor('getDevMode', [], z.boolean(), 'DevMode'),
+  descriptor('setDevMode', [parameter('enabled', z.boolean())], mutationReceipt, 'MutationReceipt'),
 ]
 
 /** Client half contribution: mounted via `ctx.remote.$mount(TYPERT_REMOTE)`. */
