@@ -65,6 +65,25 @@ rm ~/.dsh/profiles/web/node_modules/dsh-plugin-master
 
 Then restart `dsh web`. The official plugin list tab is restored automatically once the disabling row is removed.
 
+## Quarantine CLI
+
+The crash-recovery tool is exposed two ways:
+
+```sh
+# from anywhere (after `npm link` in the repo, or `npm install -g .`):
+dsh-quarantine ls
+dsh-quarantine disable <entryId>
+dsh-quarantine enable  <entryId>
+
+# or from inside a clone:
+node bin/quarantine.mjs ls
+node bin/quarantine.mjs disable <entryId>
+```
+
+`ls` lists every plugin the profile mounts with its `ENTRY ID` / `PACKAGE`
+/ `STATUS`, so after a boot crash you can find the entry id of the plugin
+named in the error before disabling it.
+
 ## Testing dev mode
 
 The repo ships a toggleable crash demo at `examples/dev-mode-demo` — a no-op plugin whose `apply` throws only when the environment variable `DEV_MODE_DEMO_CRASH=1` is set. Use it to see the quarantine in action:
@@ -83,11 +102,11 @@ DEV_MODE_DEMO_CRASH=1 dsh web
 
 # 3. quarantine the demo from the terminal, then restart — the UI opens
 #    with the demo skipped
-node bin/quarantine.mjs disable dev-mode-demo
+dsh-quarantine disable dev-mode-demo
 dsh web
 
 # 4. fix it, then re-enable and restart — the demo loads again
-node bin/quarantine.mjs enable dev-mode-demo
+dsh-quarantine enable dev-mode-demo
 dsh web
 ```
 

@@ -53,11 +53,15 @@
     "lib/invariant.mjs",
     "lib/remote.js",
     "lib/types",
+    "bin/quarantine.mjs",
     "cordis.patch.yml",
     "README.md",
     "README.zh.md",
     "LICENSE"
   ],
+  "bin": {
+    "dsh-quarantine": "./bin/quarantine.mjs"
+  },
   "scripts": {
     "build": "node scripts/build-host.mjs && tsdown --config tsdown.client.config.ts",
     "build:host": "node scripts/build-host.mjs",

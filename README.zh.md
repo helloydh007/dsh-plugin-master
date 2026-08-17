@@ -65,6 +65,24 @@ rm ~/.dsh/profiles/web/node_modules/dsh-plugin-master
 
 然后重启 `dsh web`。移除禁用行后,官方插件列表标签页会自动恢复。
 
+## 隔离 CLI
+
+崩溃恢复工具提供两种调用方式:
+
+```sh
+# 任意目录可用(在仓库里执行过 `npm link`,或 `npm install -g .`):
+dsh-quarantine ls
+dsh-quarantine disable <entryId>
+dsh-quarantine enable  <entryId>
+
+# 或在 clone 目录内:
+node bin/quarantine.mjs ls
+node bin/quarantine.mjs disable <entryId>
+```
+
+`ls` 会列出 profile 挂载的每个插件的 `ENTRY ID` / `PACKAGE` / `STATUS`,
+崩溃后先运行它,就能从错误信息里找到对应插件的 entry id 再禁用。
+
 ## 测试开发模式
 
 仓库自带一个可切换崩溃的演示插件 `examples/dev-mode-demo` —— 一个空操作插件,只有当环境变量 `DEV_MODE_DEMO_CRASH=1` 设置时 `apply` 才会抛错。用它来观察隔离效果:
@@ -82,11 +100,11 @@ ln -s "$PWD/examples/dev-mode-demo" ~/.dsh/profiles/web/node_modules/dsh-dev-mod
 DEV_MODE_DEMO_CRASH=1 dsh web
 
 # 3. 在终端隔离演示插件,然后重启 —— 界面打开,演示插件被跳过
-node bin/quarantine.mjs disable dev-mode-demo
+dsh-quarantine disable dev-mode-demo
 dsh web
 
 # 4. 修好后重新启用并重启 —— 演示插件恢复加载
-node bin/quarantine.mjs enable dev-mode-demo
+dsh-quarantine enable dev-mode-demo
 dsh web
 ```
 
